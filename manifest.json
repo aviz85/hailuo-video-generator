@@ -1,0 +1,34 @@
+{
+    "manifest_version": 3,
+    "name": "Hailuo Video Generator",
+    "version": "1.1",
+    "description": "Automates video generation on hailuoai.com/video",
+    "permissions": [
+      "activeTab",
+      "storage",
+      "tabs",
+      "background"
+    ],
+    "host_permissions": [
+      "https://hailuoai.com/*",
+      "https://hailuo.ai/*"
+    ],
+    "background": {
+      "service_worker": "background.js"
+    },
+    "content_scripts": [
+      {
+        "matches": [
+          "https://hailuoai.com/video*",
+          "https://hailuo.ai/video*"
+        ],
+        "js": ["utils.js", "domInteractions.js", "storage.js", "content.js"]
+      }
+    ],
+    "action": {
+      "default_popup": "popup.html"
+    },
+    "permissions": [
+      "storage"
+    ]
+  }

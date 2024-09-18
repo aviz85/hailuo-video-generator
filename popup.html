@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Hailuo Video Generator</title>
+  <style>
+    body { width: 300px; padding: 10px; }
+    textarea { width: 100%; height: 100px; }
+    input, button { margin-top: 10px; }
+    #promptList { margin-top: 10px; }
+    .promptItem { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+    .deleteButton { cursor: pointer; color: red; }
+    #statusSection { margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px; }
+    #logSection { margin-top: 10px; max-height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 5px; }
+  </style>
+</head>
+<body>
+  <textarea id="prompt" placeholder="Enter prompt"></textarea>
+  <input type="number" id="repeatCount" min="1" value="1" placeholder="Repeat count">
+  <button id="addPrompt">Add Prompt</button>
+  <div id="promptList"></div>
+  <button id="startQueue">Start Queue</button>
+  <button id="cancelProcess" style="display: none;">Cancel Process</button>
+  <div id="statusSection">
+    <p>Status: <span id="status">Idle</span></p>
+  </div>
+  <div id="logSection"></div>
+  <script src="popup.js"></script>
+</body>
+</html>
