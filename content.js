@@ -50,6 +50,17 @@ function injectUI() {
   // Start checking status immediately
   checkStatus();
   statusCheckInterval = setInterval(checkStatus, 5000);
+
+  // Set initial button state
+  chrome.storage.local.get(['isProcessing'], function(result) {
+    if (result.isProcessing) {
+      isProcessing = true;
+      const startButton = document.getElementById('assistant-startProcess');
+      startButton.textContent = 'Processing...';
+      startButton.disabled = true;
+      processQueue();
+    }
+  });
 }
 
 function addToQueue() {
@@ -85,7 +96,7 @@ function updateQueueTable() {
 }
 
 function saveQueue() {
-  chrome.storage.local.set({ queue: queue });
+  chrome.storage.local.set({ queue: queue, isProcessing: isProcessing });
 }
 
 function updateStatus(message) {
@@ -100,6 +111,11 @@ function startProcess() {
     isProcessing = true;
     updateStatus('Processing started');
     processQueue();
+    
+    // Update the start button
+    const startButton = document.getElementById('assistant-startProcess');
+    startButton.textContent = 'Processing...';
+    startButton.disabled = true;
   }
 }
 
@@ -108,6 +124,11 @@ function stopProcess() {
     isProcessing = false;
     updateStatus('Processing stopped');
     clearTimeout(processQueueTimeout);
+    
+    // Revert the start button
+    const startButton = document.getElementById('assistant-startProcess');
+    startButton.textContent = 'Start Process';
+    startButton.disabled = false;
   }
 }
 
