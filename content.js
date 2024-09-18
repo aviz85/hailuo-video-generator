@@ -229,8 +229,9 @@ function processQueue() {
       saveQueue();
       updateQueueTable();
 
-      // Set timeout for the next injection check
+      // Set timeout for the first injection check after 60 seconds
       nextInjectionCheckTime = Date.now() + 60000; // 60 seconds
+      clearTimeout(injectionCheckTimeout);
       injectionCheckTimeout = setTimeout(checkForInjection, 60000);
       startCountdown();
     } else {
@@ -240,17 +241,6 @@ function processQueue() {
   } else if (queue.length === 0) {
     stopProcess();
     updateQueueTable(); // This will show the success message
-  }
-}
-
-function checkStatus() {
-  const loadingElement = document.querySelector('.rotate-image');
-  isAvailable = !loadingElement;
-  updateStatus(isAvailable ? 'Creation available' : 'Creation not available');
-  nextStatusCheckTime = Date.now() + 2000; // Set the next status check time 2 seconds from now
-  
-  if (isProcessing && isAvailable) {
-    processQueue();
   }
 }
 
@@ -293,6 +283,11 @@ function startCountdown() {
 }
 
 function typePrompt(prompt) {
+  if (!isAvailable) {
+    console.log("Creation not available, skipping prompt injection");
+    return;
+  }
+
   const textArea = document.querySelector('textarea.ant-input');
   if (textArea) {
     textArea.focus();
@@ -322,3 +317,16 @@ function clickGenerateButton() {
 window.onload = () => {
   setTimeout(injectUI, 1000); // Additional 1-second delay after window load
 };
+
+function checkStatus() {
+  const loadingElement = document.querySelector('.rotate-image');
+  isAvailable = !loadingElement;
+  updateStatus(isAvailable ? 'Creation available' : 'Creation not available');
+  
+  if (isProcessing && isAvailable) {
+    processQueue();
+  }
+}
+
+// Initialize status check interval
+statusCheckInterval = setInterval(checkStatus, 2000);
