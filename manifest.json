@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "HaiLuoAI Video Generator Assistant",
+  "version": "1.0",
+  "description": "Assists in generating videos on HaiLuoAI platform",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://hailuoai.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://hailuoai.com/video"],
+      "js": ["content.js"],
+      "css": ["styles.css"]
+    }
+  ]
+}

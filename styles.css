@@ -1,0 +1,123 @@
+.assistant-container {
+  margin: 20px 0;
+  padding: 20px;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  background-color: #1a1a1a;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color: #ffffff;
+  max-width: 100%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.assistant-container textarea {
+  width: 100%;
+  height: 100px;
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid #2a2a2a;
+  border-radius: 4px;
+  resize: vertical;
+  background-color: #2a2a2a;
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.assistant-controls {
+  display: flex;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+.assistant-container input[type="number"] {
+  width: 60px;
+  margin-right: 10px;
+  padding: 8px;
+  border: 1px solid #2a2a2a;
+  border-radius: 4px;
+  background-color: #2a2a2a;
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.assistant-container table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+
+.assistant-container th, .assistant-container td {
+  border: 1px solid #2a2a2a;
+  padding: 8px;
+  text-align: left;
+}
+
+.assistant-container th {
+  background-color: #2a2a2a;
+  font-weight: bold;
+}
+
+.assistant-status-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.assistant-container .status {
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.assistant-container button {
+  padding: 8px 12px;
+  background-color: #3a3a3a;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  font-size: 14px;
+}
+
+.assistant-container button:hover {
+  background-color: #4a4a4a;
+}
+
+.assistant-container button#assistant-stopProcess {
+  background-color: #d32f2f;
+}
+
+.assistant-container button#assistant-stopProcess:hover {
+  background-color: #b71c1c;
+}
+
+#countdown-timer {
+  margin-top: 10px;
+  font-style: italic;
+  color: #888888;
+}
+
+.success-message {
+  color: #4caf50;
+  font-weight: bold;
+  text-align: center;
+  padding: 20px;
+  background-color: #1a1a1a;
+  border-radius: 4px;
+  margin-top: 10px;
+}
+
+.assistant-container table input[type="text"],
+.assistant-container table input[type="number"] {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #2a2a2a;
+  border-radius: 4px;
+  background-color: #2a2a2a;
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.assistant-container table input[type="number"] {
+  width: 60px;
+}
