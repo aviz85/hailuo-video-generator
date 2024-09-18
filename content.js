@@ -257,6 +257,19 @@ function checkForInjection() {
   }
 }
 
+function checkStatus() {
+  const loadingElement = document.querySelector('.rotate-image');
+  isAvailable = !loadingElement;
+  updateStatus(isAvailable ? 'Creation available' : 'Creation not available');
+  
+  // Always set the next status check time
+  nextStatusCheckTime = Date.now() + 2000;
+  
+  if (isProcessing && isAvailable) {
+    processQueue();
+  }
+}
+
 function startCountdown() {
   const countdownElement = document.getElementById('countdown-timer');
   if (!countdownElement) {
@@ -266,11 +279,12 @@ function startCountdown() {
 
   clearInterval(countdownInterval);
   countdownInterval = setInterval(() => {
-    const remainingStatusTime = Math.max(0, nextStatusCheckTime - Date.now());
-    const remainingInjectionTime = Math.max(0, nextInjectionCheckTime - Date.now());
+    const now = Date.now();
+    const remainingStatusTime = Math.max(0, nextStatusCheckTime - now);
+    const remainingInjectionTime = Math.max(0, nextInjectionCheckTime - now);
     
     let countdownMessage = `Next status check in: ${Math.ceil(remainingStatusTime / 1000)} seconds`;
-    if (remainingInjectionTime > 0) {
+    if (nextInjectionCheckTime && nextInjectionCheckTime > now) {
       countdownMessage += ` | Next injection check in: ${Math.ceil(remainingInjectionTime / 1000)} seconds`;
     }
     
@@ -317,16 +331,6 @@ function clickGenerateButton() {
 window.onload = () => {
   setTimeout(injectUI, 1000); // Additional 1-second delay after window load
 };
-
-function checkStatus() {
-  const loadingElement = document.querySelector('.rotate-image');
-  isAvailable = !loadingElement;
-  updateStatus(isAvailable ? 'Creation available' : 'Creation not available');
-  
-  if (isProcessing && isAvailable) {
-    processQueue();
-  }
-}
 
 // Initialize status check interval
 statusCheckInterval = setInterval(checkStatus, 2000);
