@@ -1,13 +1,13 @@
-function sendLog(message) {
+export function sendLog(message) {
     console.log(message);
     chrome.runtime.sendMessage({ type: 'log', content: message });
 }
 
-function sleep(ms) {
+export function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function debounce(func, wait) {
+export function debounce(func, wait) {
     let timeout;
     return function executedFunction(...args) {
         const later = () => {
@@ -18,8 +18,3 @@ function debounce(func, wait) {
         timeout = setTimeout(later, wait);
     };
 }
-
-// Usage example
-const debouncedSaveQueue = debounce(saveQueue, 300);
-
-export { sendLog, sleep, debounce };

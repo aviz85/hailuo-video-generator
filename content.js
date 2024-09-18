@@ -1,10 +1,22 @@
-import { sendLog, sleep } from './utils.js';
-import { simulateTyping, clearTextArea, waitForAnimation } from './domInteractions.js';
-import { getFromStorage, setInStorage } from './storage.js';
+import { sendLog, sleep, debounce } from './utils.js';
+import * as domInteractions from './domInteractions.js';
+import * as storage from './storage.js';
 
 let currentPrompt = null;
 let remainingRepeats = 0;
 let isWaitingForAnimation = false;
+
+function sendReadyMessage() {
+    chrome.runtime.sendMessage({action: 'contentScriptReady'}, response => {
+        if (chrome.runtime.lastError) {
+            console.log("Error sending contentScriptReady message:", chrome.runtime.lastError.message);
+            // Try again after a short delay
+            setTimeout(sendReadyMessage, 1000);
+        } else {
+            console.log("contentScriptReady message sent successfully");
+        }
+    });
+}
 
 async function executePrompt(prompt) {
     sendLog(`Starting execution of prompt: "${prompt.text}"`);
@@ -22,11 +34,11 @@ async function executePrompt(prompt) {
     
     try {
         sendLog("Clearing textarea");
-        await clearTextArea(textArea);
+        await domInteractions.clearTextArea(textArea);
         await sleep(300);
         
         sendLog(`Typing prompt: "${prompt.text}"`);
-        await simulateTyping(textArea, prompt.text);
+        await domInteractions.simulateTyping(textArea, prompt.text);
         await sleep(500);
         
         sendLog("Verifying typed text");
@@ -40,9 +52,9 @@ async function executePrompt(prompt) {
         
         isWaitingForAnimation = true;
         sendLog("Waiting for animation to start");
-        await waitForAnimation(true);
+        await domInteractions.waitForAnimation(true);
         sendLog("Waiting for animation to end");
-        await waitForAnimation(false);
+        await domInteractions.waitForAnimation(false);
         isWaitingForAnimation = false;
         
         sendLog(`Completed processing for prompt: "${prompt.text}"`);
@@ -53,19 +65,25 @@ async function executePrompt(prompt) {
 
 async function executePrompts() {
     sendLog("Starting executePrompts function");
-    const promptQueue = await getFromStorage('promptQueue');
+    const promptQueue = await storage.getFromStorage('promptQueue');
     sendLog(`Retrieved promptQueue: ${JSON.stringify(promptQueue)}`);
     
-    for (const prompt of promptQueue) {
-        sendLog(`Processing prompt: ${JSON.stringify(prompt)}`);
-        for (let i = 0; i < prompt.repeats; i++) {
-            sendLog(`Repeat ${i + 1} of ${prompt.repeats}`);
-            await executePrompt(prompt);
-            sendLog("Waiting 1 second before next execution");
-            await sleep(1000);
+    if (promptQueue && promptQueue.length > 0) {
+        for (const prompt of promptQueue) {
+            sendLog(`Processing prompt: ${JSON.stringify(prompt)}`);
+            for (let i = 0; i < prompt.repeats; i++) {
+                sendLog(`Repeat ${i + 1} of ${prompt.repeats}`);
+                await executePrompt(prompt);
+                sendLog("Waiting 5 seconds before next execution");
+                await sleep(5000);
+            }
         }
+        sendLog("Finished processing all prompts");
+        await storage.setInStorage('promptQueue', []);
+        await storage.setInStorage('isRunning', false);
+    } else {
+        sendLog("No prompts in queue");
     }
-    sendLog("Finished processing all prompts");
 }
 
 async function checkAndGenerateVideo() {
@@ -76,8 +94,8 @@ async function checkAndGenerateVideo() {
     }
 
     const [promptQueue, isRunning] = await Promise.all([
-        getFromStorage('promptQueue'),
-        getFromStorage('isRunning')
+        storage.getFromStorage('promptQueue'),
+        storage.getFromStorage('isRunning')
     ]);
 
     sendLog(`Current state - isRunning: ${isRunning}, promptQueue length: ${promptQueue ? promptQueue.length : 0}`);
@@ -93,7 +111,7 @@ async function checkAndGenerateVideo() {
             if (remainingRepeats <= 0) {
                 sendLog("Finished all repeats for current prompt, moving to next");
                 const newQueue = promptQueue.slice(1);
-                await setInStorage('promptQueue', newQueue);
+                await storage.setInStorage('promptQueue', newQueue);
                 currentPrompt = null;
             } else {
                 sendLog(`Remaining repeats for current prompt: ${remainingRepeats}`);
@@ -103,22 +121,35 @@ async function checkAndGenerateVideo() {
         }
     } else if (isRunning && (!promptQueue || promptQueue.length === 0)) {
         sendLog('No more prompts in queue, setting isRunning to false');
-        await setInStorage('isRunning', false);
+        await storage.setInStorage('isRunning', false);
         sendLog('Finished processing all prompts');
     } else {
         sendLog('Not running or no prompts in queue');
     }
 }
 
-sendLog("Content script loaded, setting up interval");
-setInterval(checkAndGenerateVideo, 5000);
+function main() {
+    console.log("Content script loaded");
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    sendLog(`Received message: ${JSON.stringify(request)}`);
-    if (request.action === 'runPrompts') {
-        sendLog("Received runPrompts message, starting execution");
-        executePrompts();
-    }
-});
+    // Send the ready message when the script loads
+    sendReadyMessage();
 
-sendLog("Content script fully initialized and running");
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+        sendLog(`Received message: ${JSON.stringify(request)}`);
+        if (request.action === 'runPrompts') {
+            sendLog("Received runPrompts message, starting execution");
+            executePrompts();
+        }
+        return true;
+    });
+
+    // Re-send the ready message periodically in case the background script reloads
+    setInterval(sendReadyMessage, 60000); // Every minute
+
+    // Set up interval for checking and generating videos
+    setInterval(checkAndGenerateVideo, 5000);
+
+    sendLog("Content script fully initialized and running");
+}
+
+export { main };
