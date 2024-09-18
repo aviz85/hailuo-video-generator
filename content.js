@@ -11,16 +11,16 @@ function injectUI() {
   const container = document.createElement('div');
   container.className = 'assistant-container';
   container.innerHTML = `
-    <div class="api-key-section">
-      <input type="password" id="openai-api-key" placeholder="Enter your OpenAI API key">
-      <button id="save-api-key">Save API Key</button>
-    </div>
     <div class="prompt-crafter-toggle">
       <label>
         <input type="checkbox" id="show-prompt-crafter"> Show Prompt Crafter
       </label>
     </div>
     <div class="prompt-crafter" style="display: none;">
+      <div class="api-key-section">
+        <input type="password" id="openai-api-key" placeholder="Enter your OpenAI API key">
+        <button id="save-api-key">Save API Key</button>
+      </div>
       <div class="crafted-prompt-sections">
         <div class="prompt-section">
           <label>
@@ -61,10 +61,13 @@ function injectUI() {
     </div>
     <div class="queue-section">
       <textarea id="assistant-prompt" placeholder="Enter your prompt here"></textarea>
-      <div class="assistant-controls">
-        <button id="craft-prompt">Craft Prompt</button>
+      <div class="assistant-count">
+        <label for="assistant-count">Number of generations:</label>
         <input type="number" id="assistant-count" min="1" value="1">
-        <button id="assistant-addToQueue">Add to Queue</button>
+      </div>
+      <div class="assistant-controls">
+        <button id="craft-prompt" class="craft-button">Craft Prompt</button>
+        <button id="assistant-addToQueue" class="queue-button">Add to Queue</button>
       </div>
       <div id="queue-container"></div>
       <div id="countdown-timer"></div>
@@ -471,7 +474,6 @@ function saveApiKey() {
   
   if (apiKey) {
     localStorage.setItem('openaiApiKey', apiKey);
-    apiKeyInput.value = '*'.repeat(apiKey.length);
     alert('API key saved successfully!');
   } else {
     alert('Please enter a valid API key.');
@@ -488,20 +490,15 @@ function loadApiKey() {
 }
 
 function getApiKey() {
-  const savedApiKey = localStorage.getItem('openaiApiKey');
+  const apiKeyInput = document.getElementById('openai-api-key');
+  const apiKey = apiKeyInput.value.trim();
   
-  if (!savedApiKey) {
-    const apiKey = prompt('Please enter your OpenAI API key:');
-    if (apiKey) {
-      localStorage.setItem('openaiApiKey', apiKey);
-      return apiKey;
-    } else {
-      alert('API key is required to use the prompt crafter.');
-      return null;
-    }
+  if (!apiKey) {
+    alert('Please enter your OpenAI API key in the Prompt Crafter section.');
+    return null;
   }
   
-  return savedApiKey;
+  return apiKey;
 }
 
 async function fetchGPTResponse(apiKey, systemPrompt, userPrompt) {
@@ -512,7 +509,7 @@ async function fetchGPTResponse(apiKey, systemPrompt, userPrompt) {
       'Authorization': `Bearer ${apiKey}`
     },
     body: JSON.stringify({
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }

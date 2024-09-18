@@ -25,9 +25,9 @@
 
 .assistant-controls {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 10px;
+  justify-content: flex-start;
+  margin-top: 15px;
+  margin-bottom: 15px;
 }
 
 .assistant-container input[type="number"] {
@@ -125,6 +125,9 @@
 
 .prompt-crafter {
   margin-bottom: 20px;
+  border: 1px solid #3a3a3a;
+  padding: 10px;
+  border-radius: 4px;
 }
 
 .crafted-prompt-sections {
@@ -179,7 +182,7 @@
   flex-grow: 1;
   margin-right: 10px;
   padding: 5px;
-  border: 1px solid #2a2a2a;
+  border: 1px solid #3a3a3a;
   border-radius: 4px;
   background-color: #2a2a2a;
   color: #ffffff;
@@ -199,19 +202,105 @@
 }
 
 .assistant-controls button {
-  padding: 5px 10px;
-  background-color: #3a3a3a;
-  color: #ffffff;
+  padding: 10px 20px;
   border: none;
-  border-radius: 4px;
+  border-radius: 5px;
   cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  transition: background-color 0.3s ease, transform 0.1s ease;
+  margin-right: 10px;
 }
 
-.assistant-controls button:hover {
-  background-color: #4a4a4a;
+.craft-button {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.craft-button:hover {
+  background-color: #45a049;
+  transform: translateY(-2px);
+}
+
+.queue-button {
+  background-color: #008CBA;
+  color: white;
+}
+
+.queue-button:hover {
+  background-color: #007a9e;
+  transform: translateY(-2px);
+}
+
+.assistant-controls button:active {
+  transform: translateY(1px);
 }
 
 #assistant-count {
   width: 50px;
   text-align: center;
+}
+
+.assistant-count {
+  margin: 10px 0;
+  display: flex;
+  align-items: center;
+}
+
+.assistant-count label {
+  margin-right: 10px;
+}
+
+#assistant-count {
+  width: 60px;
+  padding: 5px;
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  background-color: #2a2a2a;
+  color: #ffffff;
+}
+
+.assistant-controls {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.assistant-controls button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.craft-button {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.craft-button:hover {
+  background-color: #45a049;
+}
+
+.queue-button {
+  background-color: #008CBA;
+  color: white;
+}
+
+.queue-button:hover {
+  background-color: #007a9e;
+}
+
+#assistant-prompt {
+  width: 100%;
+  height: 100px;
+  margin-bottom: 10px;
+  padding: 8px;
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  background-color: #2a2a2a;
+  color: #ffffff;
+  resize: vertical;
 }
