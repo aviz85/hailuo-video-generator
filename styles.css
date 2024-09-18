@@ -1,26 +1,26 @@
 .assistant-container {
-  margin: 20px auto;
+  margin: 20px 0;
   padding: 20px;
-  border: 1px solid var(--adm-color-border);
-  border-radius: var(--adm-radius-m);
-  background-color: var(--adm-color-background);
-  font-family: var(--adm-font-family);
-  color: var(--adm-color-text);
-  max-width: 800px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  background-color: #1a1a1a;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color: #ffffff;
+  max-width: 100%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .assistant-container textarea {
   width: 100%;
   height: 100px;
   margin-bottom: 10px;
-  padding: 5px;
-  border: 1px solid var(--adm-color-border);
-  border-radius: var(--adm-radius-s);
+  padding: 10px;
+  border: 1px solid #2a2a2a;
+  border-radius: 4px;
   resize: vertical;
-  background-color: var(--adm-color-box);
-  color: var(--adm-color-text);
-  font-size: var(--adm-font-size-main);
+  background-color: #2a2a2a;
+  color: #ffffff;
+  font-size: 14px;
 }
 
 .assistant-controls {
@@ -32,12 +32,12 @@
 .assistant-container input[type="number"] {
   width: 60px;
   margin-right: 10px;
-  padding: 5px;
-  border: 1px solid var(--adm-color-border);
-  border-radius: var(--adm-radius-s);
-  background-color: var(--adm-color-box);
-  color: var(--adm-color-text);
-  font-size: var(--adm-font-size-main);
+  padding: 8px;
+  border: 1px solid #2a2a2a;
+  border-radius: 4px;
+  background-color: #2a2a2a;
+  color: #ffffff;
+  font-size: 14px;
 }
 
 .assistant-container table {
@@ -47,13 +47,13 @@
 }
 
 .assistant-container th, .assistant-container td {
-  border: 1px solid var(--adm-color-border);
+  border: 1px solid #2a2a2a;
   padding: 8px;
   text-align: left;
 }
 
 .assistant-container th {
-  background-color: var(--adm-color-fill-content);
+  background-color: #2a2a2a;
   font-weight: bold;
 }
 
@@ -65,59 +65,57 @@
 
 .assistant-container .status {
   font-weight: bold;
-  color: var(--adm-color-text);
+  color: #ffffff;
 }
 
 .assistant-container button {
   padding: 8px 12px;
-  background-color: var(--adm-color-primary);
-  color: var(--adm-color-text-light-solid);
+  background-color: #3a3a3a;
+  color: #ffffff;
   border: none;
-  border-radius: var(--adm-radius-s);
+  border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s;
-  font-size: var(--adm-font-size-main);
+  font-size: 14px;
 }
 
 .assistant-container button:hover {
-  background-color: var(--adm-color-primary);
-  opacity: 0.8;
+  background-color: #4a4a4a;
 }
 
 .assistant-container button#assistant-stopProcess {
-  background-color: var(--adm-color-danger);
+  background-color: #d32f2f;
 }
 
 .assistant-container button#assistant-stopProcess:hover {
-  background-color: var(--adm-color-danger);
-  opacity: 0.8;
+  background-color: #b71c1c;
 }
 
 #countdown-timer {
   margin-top: 10px;
   font-style: italic;
-  color: var(--adm-color-weak);
+  color: #888888;
 }
 
 .success-message {
-  color: var(--adm-color-success);
+  color: #4caf50;
   font-weight: bold;
   text-align: center;
   padding: 20px;
-  background-color: var(--adm-color-fill-content);
-  border-radius: var(--adm-radius-m);
+  background-color: #1a1a1a;
+  border-radius: 4px;
   margin-top: 10px;
 }
 
 .assistant-container table input[type="text"],
 .assistant-container table input[type="number"] {
   width: 100%;
-  padding: 5px;
-  border: 1px solid var(--adm-color-border);
-  border-radius: var(--adm-radius-s);
-  background-color: var(--adm-color-box);
-  color: var(--adm-color-text);
-  font-size: var(--adm-font-size-main);
+  padding: 8px;
+  border: 1px solid #2a2a2a;
+  border-radius: 4px;
+  background-color: #2a2a2a;
+  color: #ffffff;
+  font-size: 14px;
 }
 
 .assistant-container table input[type="number"] {

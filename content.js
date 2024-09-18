@@ -17,6 +17,7 @@ function injectUI() {
       <button id="assistant-addToQueue">Add to Queue</button>
     </div>
     <div id="queue-container"></div>
+    <div id="countdown-timer"></div>
     <div class="assistant-status-controls">
       <div class="status" id="assistant-status">Status: Checking...</div>
       <button id="assistant-startProcess">Start Process</button>
@@ -28,7 +29,7 @@ function injectUI() {
   function insertContainer() {
     const insertionPoint = document.querySelector('div.mt-3 img[src="assets/img/video-top-logo.png"]');
     if (insertionPoint) {
-      const parentElement = insertionPoint.parentElement;
+      const parentElement = insertionPoint.closest('.mt-3');
       parentElement.insertAdjacentElement('afterend', container);
       return true;
     }
