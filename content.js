@@ -115,13 +115,19 @@ function processQueue() {
   if (isProcessing && queue.length > 0 && isAvailable) {
     const item = queue[0];
     typePrompt(item.prompt);
+    
+    // Update the queue immediately after starting the job
+    item.count--;
+    if (item.count <= 0) {
+      queue.shift();
+    } else {
+      queue[0] = item; // Update the first item in the queue
+    }
+    saveQueue();
+    updateQueueTable();
+
+    // Set timeout for the next process
     processQueueTimeout = setTimeout(function() {
-      item.count--;
-      if (item.count <= 0) {
-        queue.shift();
-      }
-      saveQueue();
-      updateQueueTable();
       processQueue();
     }, 60000);
   }
