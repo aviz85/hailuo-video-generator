@@ -11,17 +11,68 @@ function injectUI() {
   const container = document.createElement('div');
   container.className = 'assistant-container';
   container.innerHTML = `
-    <textarea id="assistant-prompt" placeholder="Enter your prompt here"></textarea>
-    <div class="assistant-controls">
-      <input type="number" id="assistant-count" min="1" value="1">
-      <button id="assistant-addToQueue">Add to Queue</button>
+    <div class="api-key-section">
+      <input type="password" id="openai-api-key" placeholder="Enter your OpenAI API key">
+      <button id="save-api-key">Save API Key</button>
     </div>
-    <div id="queue-container"></div>
-    <div id="countdown-timer"></div>
-    <div class="assistant-status-controls">
-      <div class="status" id="assistant-status">Status: Checking...</div>
-      <button id="assistant-startProcess">Start Process</button>
-      <button id="assistant-stopProcess">Stop Process</button>
+    <div class="prompt-crafter-toggle">
+      <label>
+        <input type="checkbox" id="show-prompt-crafter"> Show Prompt Crafter
+      </label>
+    </div>
+    <div class="prompt-crafter" style="display: none;">
+      <div class="crafted-prompt-sections">
+        <div class="prompt-section">
+          <label>
+            <input type="checkbox" id="keep-style">
+            Style
+          </label>
+          <textarea id="style-prompt" placeholder="Video style description"></textarea>
+        </div>
+        <div class="prompt-section">
+          <label>
+            <input type="checkbox" id="keep-location">
+            Location
+          </label>
+          <textarea id="location-prompt" placeholder="Location description"></textarea>
+        </div>
+        <div class="prompt-section">
+          <label>
+            <input type="checkbox" id="keep-characters">
+            Characters
+          </label>
+          <textarea id="characters-prompt" placeholder="Characters description"></textarea>
+        </div>
+        <div class="prompt-section">
+          <label>
+            <input type="checkbox" id="keep-shot">
+            Shot Details
+          </label>
+          <textarea id="shot-prompt" placeholder="Shot details and camera movement"></textarea>
+        </div>
+        <div class="prompt-section">
+          <label>
+            <input type="checkbox" id="keep-action">
+            Action
+          </label>
+          <textarea id="action-prompt" placeholder="Action description"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="queue-section">
+      <textarea id="assistant-prompt" placeholder="Enter your prompt here"></textarea>
+      <div class="assistant-controls">
+        <button id="craft-prompt">Craft Prompt</button>
+        <input type="number" id="assistant-count" min="1" value="1">
+        <button id="assistant-addToQueue">Add to Queue</button>
+      </div>
+      <div id="queue-container"></div>
+      <div id="countdown-timer"></div>
+      <div class="assistant-status-controls">
+        <div class="status" id="assistant-status">Status: Checking...</div>
+        <button id="assistant-startProcess">Start Process</button>
+        <button id="assistant-stopProcess">Stop Process</button>
+      </div>
     </div>
   `;
 
@@ -62,6 +113,12 @@ function initializeUI() {
   document.getElementById('assistant-addToQueue').addEventListener('click', addToQueue);
   document.getElementById('assistant-startProcess').addEventListener('click', startProcess);
   document.getElementById('assistant-stopProcess').addEventListener('click', stopProcess);
+  document.getElementById('craft-prompt').addEventListener('click', craftPrompt);
+  document.getElementById('show-prompt-crafter').addEventListener('change', togglePromptCrafter);
+  document.getElementById('save-api-key').addEventListener('click', saveApiKey);
+  
+  loadApiKey();
+  loadPromptCrafterPreference();
 
   // Load queue from local storage
   const savedQueue = localStorage.getItem('queue');
@@ -281,16 +338,16 @@ function startCountdown() {
   countdownInterval = setInterval(() => {
     const now = Date.now();
     const remainingStatusTime = Math.max(0, nextStatusCheckTime - now);
-    const remainingInjectionTime = Math.max(0, nextInjectionCheckTime - now);
+    const remainingInjectionTime = nextInjectionCheckTime ? Math.max(0, nextInjectionCheckTime - now) : 0;
     
     let countdownMessage = `Next status check in: ${Math.ceil(remainingStatusTime / 1000)} seconds`;
-    if (nextInjectionCheckTime && nextInjectionCheckTime > now) {
+    if (nextInjectionCheckTime !== null) {
       countdownMessage += ` | Next injection check in: ${Math.ceil(remainingInjectionTime / 1000)} seconds`;
     }
     
     countdownElement.textContent = countdownMessage;
     
-    if (remainingStatusTime <= 0 && remainingInjectionTime <= 0) {
+    if (remainingStatusTime <= 0 && (nextInjectionCheckTime === null || remainingInjectionTime <= 0)) {
       clearInterval(countdownInterval);
     }
   }, 100);
@@ -318,6 +375,9 @@ function typePrompt(prompt) {
       clickGenerateButton();
     }, 100);
   }
+
+  // Reset the injection check time after successful injection
+  nextInjectionCheckTime = null;
 }
 
 function clickGenerateButton() {
@@ -325,6 +385,143 @@ function clickGenerateButton() {
   if (generateButton) {
     generateButton.click();
   }
+}
+
+async function craftPrompt() {
+  const promptInput = document.getElementById('assistant-prompt');
+  const generalPrompt = promptInput.value;
+  const apiKey = getApiKey();
+
+  if (!apiKey) {
+    return;
+  }
+
+  const systemPrompt = `You are a video description assistant. Given a general prompt, provide detailed descriptions for the following aspects of a video. Each description should be no more than 100 words:
+  1. Style (animation/3D/hand-drawn/Disney/Pixar etc.)
+  2. Location
+  3. Characters
+  4. Shot details and camera movement (close-up/establish shot/medium shot, camera movement between subjects)
+  5. Action
+
+  Only provide descriptions for aspects not already specified in the input. If an aspect is already described, respond with "KEEP EXISTING" for that aspect.`;
+
+  try {
+    const response = await fetchGPTResponse(apiKey, systemPrompt, generalPrompt);
+    const craftedPrompt = updateCraftedPrompts(response);
+    
+    // Update the assistant-prompt textarea with the crafted prompt
+    promptInput.value = craftedPrompt;
+  } catch (error) {
+    console.error('Error crafting prompt:', error);
+    alert('An error occurred while crafting the prompt. Please try again.');
+  }
+}
+
+function updateCraftedPrompts(gptResponse) {
+  const sections = ['style', 'location', 'characters', 'shot', 'action'];
+  const lines = gptResponse.split('\n');
+  let craftedPrompt = '';
+
+  sections.forEach((section, index) => {
+    const textarea = document.getElementById(`${section}-prompt`);
+    const checkbox = document.getElementById(`keep-${section}`);
+
+    let content;
+    if (checkbox.checked) {
+      content = textarea.value;
+    } else {
+      content = lines[index] && lines[index].includes(':') ? lines[index].split(':')[1].trim() : '';
+      content = content !== 'KEEP EXISTING' ? content : textarea.value;
+      textarea.value = content;
+    }
+
+    if (content) {
+      craftedPrompt += `${section.charAt(0).toUpperCase() + section.slice(1)}: ${content}\n`;
+    }
+  });
+
+  return craftedPrompt.trim();
+}
+
+function togglePromptCrafter() {
+  const promptCrafter = document.querySelector('.prompt-crafter');
+  const showPromptCrafter = document.getElementById('show-prompt-crafter');
+  
+  promptCrafter.style.display = showPromptCrafter.checked ? 'block' : 'none';
+  localStorage.setItem('showPromptCrafter', showPromptCrafter.checked);
+}
+
+function loadPromptCrafterPreference() {
+  const showPromptCrafter = document.getElementById('show-prompt-crafter');
+  const promptCrafter = document.querySelector('.prompt-crafter');
+  const savedPreference = localStorage.getItem('showPromptCrafter');
+  
+  if (savedPreference === 'true') {
+    showPromptCrafter.checked = true;
+    promptCrafter.style.display = 'block';
+  } else {
+    showPromptCrafter.checked = false;
+    promptCrafter.style.display = 'none';
+  }
+}
+
+function saveApiKey() {
+  const apiKeyInput = document.getElementById('openai-api-key');
+  const apiKey = apiKeyInput.value.trim();
+  
+  if (apiKey) {
+    localStorage.setItem('openaiApiKey', apiKey);
+    apiKeyInput.value = '*'.repeat(apiKey.length);
+    alert('API key saved successfully!');
+  } else {
+    alert('Please enter a valid API key.');
+  }
+}
+
+function loadApiKey() {
+  const apiKeyInput = document.getElementById('openai-api-key');
+  const savedApiKey = localStorage.getItem('openaiApiKey');
+  
+  if (savedApiKey) {
+    apiKeyInput.value = '*'.repeat(savedApiKey.length);
+  }
+}
+
+function getApiKey() {
+  const savedApiKey = localStorage.getItem('openaiApiKey');
+  
+  if (!savedApiKey) {
+    const apiKey = prompt('Please enter your OpenAI API key:');
+    if (apiKey) {
+      localStorage.setItem('openaiApiKey', apiKey);
+      return apiKey;
+    } else {
+      alert('API key is required to use the prompt crafter.');
+      return null;
+    }
+  }
+  
+  return savedApiKey;
+}
+
+async function fetchGPTResponse(apiKey, systemPrompt, userPrompt) {
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model: 'gpt-3.5-turbo',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ]
+    })
+  });
+
+  const data = await response.json();
+  return data.choices[0].message.content;
 }
 
 // Wait for the window to fully load before injecting UI

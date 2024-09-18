@@ -25,8 +25,9 @@
 
 .assistant-controls {
   display: flex;
-  margin-bottom: 10px;
+  justify-content: space-between;
   align-items: center;
+  margin-top: 10px;
 }
 
 .assistant-container input[type="number"] {
@@ -120,4 +121,97 @@
 
 .assistant-container table input[type="number"] {
   width: 60px;
+}
+
+.prompt-crafter {
+  margin-bottom: 20px;
+}
+
+.crafted-prompt-sections {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.prompt-section {
+  flex: 1 1 calc(50% - 5px);
+}
+
+.prompt-section textarea {
+  width: 100%;
+  height: 80px;
+  margin-top: 5px;
+}
+
+#general-prompt {
+  width: 100%;
+  height: 60px;
+  margin-bottom: 10px;
+}
+
+#craft-prompt, #add-crafted-to-queue {
+  margin-top: 10px;
+}
+
+.prompt-crafter-toggle {
+  margin-bottom: 10px;
+}
+
+.prompt-crafter-toggle label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.prompt-crafter-toggle input[type="checkbox"] {
+    margin-right: 5px;
+
+}
+
+.api-key-section {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.api-key-section input[type="password"] {
+  flex-grow: 1;
+  margin-right: 10px;
+  padding: 5px;
+  border: 1px solid #2a2a2a;
+  border-radius: 4px;
+  background-color: #2a2a2a;
+  color: #ffffff;
+}
+
+.api-key-section button {
+  padding: 5px 10px;
+  background-color: #3a3a3a;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.api-key-section button:hover {
+  background-color: #4a4a4a;
+}
+
+.assistant-controls button {
+  padding: 5px 10px;
+  background-color: #3a3a3a;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.assistant-controls button:hover {
+  background-color: #4a4a4a;
+}
+
+#assistant-count {
+  width: 50px;
+  text-align: center;
 }
