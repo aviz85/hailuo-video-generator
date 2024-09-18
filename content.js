@@ -1,151 +1,171 @@
-import { sendLog, sleep, debounce } from './utils.js';
-import * as domInteractions from './domInteractions.js';
-import * as storage from './storage.js';
+let queue = [];
+let isProcessing = false;
+let isAvailable = true;
+let statusCheckInterval;
+let processQueueTimeout;
 
-let currentPrompt = null;
-let remainingRepeats = 0;
-let isWaitingForAnimation = false;
-let isRunning = false; // Initialize at the top of the file
+function injectUI() {
+  const container = document.createElement('div');
+  container.className = 'assistant-container';
+  container.innerHTML = `
+    <textarea id="assistant-prompt" placeholder="Enter your prompt here"></textarea>
+    <div class="assistant-controls">
+      <input type="number" id="assistant-count" min="1" value="1">
+      <button id="assistant-addToQueue">Add to Queue</button>
+    </div>
+    <table id="assistant-queueTable">
+      <thead>
+        <tr>
+          <th>Prompt</th>
+          <th>Count</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div class="assistant-status-controls">
+      <div class="status" id="assistant-status">Status: Checking...</div>
+      <button id="assistant-startProcess">Start Process</button>
+      <button id="assistant-stopProcess">Stop Process</button>
+    </div>
+  `;
 
-function sendReadyMessage() {
-    chrome.runtime.sendMessage({action: 'contentScriptReady'}, response => {
-        if (chrome.runtime.lastError) {
-            console.log("Error sending contentScriptReady message:", chrome.runtime.lastError.message);
-            // Try again after a short delay
-            setTimeout(sendReadyMessage, 1000);
-        } else {
-            console.log("contentScriptReady message sent successfully");
-        }
-    });
+  // Try to find a suitable parent element
+  const parentElement = document.querySelector('.ant-form') || document.body;
+  
+  // Insert the container at the beginning of the parent element
+  parentElement.insertBefore(container, parentElement.firstChild);
+
+  document.getElementById('assistant-addToQueue').addEventListener('click', addToQueue);
+  document.getElementById('assistant-startProcess').addEventListener('click', startProcess);
+  document.getElementById('assistant-stopProcess').addEventListener('click', stopProcess);
+
+  chrome.storage.local.get(['queue'], function(result) {
+    if (result.queue) {
+      queue = result.queue;
+      updateQueueTable();
+    }
+  });
+
+  // Start checking status immediately
+  checkStatus();
+  statusCheckInterval = setInterval(checkStatus, 5000);
 }
 
-async function executePrompt(prompt) {
-    sendLog(`Starting execution of prompt: "${prompt.text}"`);
-    const textArea = document.querySelector('textarea[placeholder^="请描述想生成的视频内容"]');
-    const buildButton = document.querySelector('button.build_video');
-    
-    if (!textArea || !buildButton) {
-        sendLog("Could not find textarea or button");
-        return;
-    }
+function addToQueue() {
+  const promptInput = document.getElementById('assistant-prompt');
+  const countInput = document.getElementById('assistant-count');
+  const prompt = promptInput.value.trim();
+  const count = parseInt(countInput.value);
+  if (prompt && count > 0) {
+    queue.push({ prompt, count });
+    updateQueueTable();
+    saveQueue();
+    promptInput.value = '';
+    countInput.value = 1;
+  }
+}
 
-    sendLog("Found textarea and button");
+function updateQueueTable() {
+  const queueTable = document.getElementById('assistant-queueTable').getElementsByTagName('tbody')[0];
+  queueTable.innerHTML = '';
+  queue.forEach((item, index) => {
+    const row = queueTable.insertRow();
+    row.insertCell(0).textContent = item.prompt;
+    row.insertCell(1).textContent = item.count;
+    const deleteButton = document.createElement('button');
+    deleteButton.textContent = 'X';
+    deleteButton.addEventListener('click', function() {
+      queue.splice(index, 1);
+      updateQueueTable();
+      saveQueue();
+    });
+    row.insertCell(2).appendChild(deleteButton);
+  });
+}
+
+function saveQueue() {
+  chrome.storage.local.set({ queue: queue });
+}
+
+function updateStatus(message) {
+  const statusElement = document.getElementById('assistant-status');
+  if (statusElement) {
+    statusElement.textContent = 'Status: ' + message;
+  }
+}
+
+function startProcess() {
+  if (!isProcessing) {
+    isProcessing = true;
+    updateStatus('Processing started');
+    processQueue();
+  }
+}
+
+function stopProcess() {
+  if (isProcessing) {
+    isProcessing = false;
+    updateStatus('Processing stopped');
+    clearTimeout(processQueueTimeout);
+  }
+}
+
+function processQueue() {
+  if (isProcessing && queue.length > 0 && isAvailable) {
+    const item = queue[0];
+    typePrompt(item.prompt);
+    processQueueTimeout = setTimeout(function() {
+      item.count--;
+      if (item.count <= 0) {
+        queue.shift();
+      }
+      saveQueue();
+      updateQueueTable();
+      processQueue();
+    }, 60000);
+  }
+}
+
+function checkStatus() {
+  const loadingElement = document.querySelector('.rotate-image');
+  isAvailable = !loadingElement;
+  updateStatus(isAvailable ? 'Creation available' : 'Creation not available');
+}
+
+function typePrompt(prompt) {
+  const textArea = document.querySelector('textarea.ant-input');
+  if (textArea) {
     textArea.focus();
-    textArea.dispatchEvent(new Event('focus', { bubbles: true }));
-    
-    try {
-        sendLog("Clearing textarea");
-        await domInteractions.clearTextArea(textArea);
-        await sleep(300);
-        
-        sendLog(`Typing prompt: "${prompt.text}"`);
-        await domInteractions.simulateTyping(textArea, prompt.text);
-        await sleep(500);
-        
-        sendLog("Verifying typed text");
-        if (textArea.value !== prompt.text) {
-            sendLog(`Warning: Typed text "${textArea.value}" doesn't match prompt "${prompt.text}"`);
+    let i = 0;
+    const typeInterval = setInterval(function() {
+      if (i < prompt.length) {
+        textArea.value += prompt[i];
+        textArea.dispatchEvent(new Event('input', { bubbles: true }));
+        i++;
+      } else {
+        clearInterval(typeInterval);
+        if (textArea.value !== prompt) {
+          clearAndRetry(textArea, prompt);
+        } else {
+          clickGenerateButton();
         }
-        
-        sendLog("Clicking build button");
-        buildButton.click();
-        sendLog(`Executed prompt: "${prompt.text}"`);
-        
-        isWaitingForAnimation = true;
-        sendLog("Waiting for animation to start");
-        let animationStarted = await domInteractions.waitForAnimation(true);
-        if (!animationStarted) {
-            sendLog("Animation did not start within the expected time");
-            isWaitingForAnimation = false;
-            return;
-        }
-        
-        sendLog("Waiting for animation to end");
-        let animationEnded = await domInteractions.waitForAnimation(false);
-        if (!animationEnded) {
-            sendLog("Animation did not end within the expected time");
-        }
-        
-        isWaitingForAnimation = false;
-        sendLog(`Completed processing for prompt: "${prompt.text}"`);
-    } catch (error) {
-        sendLog(`Error executing prompt: ${error.message}`);
-        isWaitingForAnimation = false;
-    }
+      }
+    }, 50);
+  }
 }
 
-async function executePrompts() {
-    sendLog("Starting executePrompts function");
-    const promptQueue = await storage.getFromStorage('promptQueue');
-    sendLog(`Retrieved promptQueue: ${JSON.stringify(promptQueue)}`);
-    
-    if (promptQueue && promptQueue.length > 0) {
-        for (const prompt of promptQueue) {
-            sendLog(`Processing prompt: ${JSON.stringify(prompt)}`);
-            for (let i = 0; i < prompt.repeats; i++) {
-                sendLog(`Repeat ${i + 1} of ${prompt.repeats}`);
-                await executePrompt(prompt);
-                sendLog("Waiting 5 seconds before next execution");
-                await sleep(5000);
-            }
-        }
-        sendLog("Finished processing all prompts");
-        await storage.setInStorage('promptQueue', []);
-        await storage.setInStorage('isRunning', false);
-    } else {
-        sendLog("No prompts in queue");
-    }
+function clearAndRetry(textArea, prompt) {
+  textArea.value = '';
+  textArea.dispatchEvent(new Event('input', { bubbles: true }));
+  setTimeout(() => typePrompt(prompt), 500);
 }
 
-async function checkAndGenerateVideo() {
-    sendLog("Starting checkAndGenerateVideo function");
-    if (isWaitingForAnimation) {
-        sendLog("Still waiting for animation, skipping this check");
-        return;
-    }
-
-    const promptQueue = await storage.getFromStorage('promptQueue');
-    sendLog(`Current state - isRunning: ${isRunning}, promptQueue length: ${promptQueue ? promptQueue.length : 0}`);
-
-    if (!isRunning && promptQueue && promptQueue.length > 0) {
-        sendLog("Starting to process prompts");
-        isRunning = true;
-        await storage.setInStorage('isRunning', true);
-        await executePrompts();
-    } else if (isRunning && (!promptQueue || promptQueue.length === 0)) {
-        sendLog('No more prompts in queue, setting isRunning to false');
-        isRunning = false;
-        await storage.setInStorage('isRunning', false);
-        sendLog('Finished processing all prompts');
-    } else if (isRunning) {
-        sendLog('Already running, skipping this check');
-    } else {
-        sendLog('Not running and no prompts in queue');
-    }
+function clickGenerateButton() {
+  const generateButton = document.querySelector('button.build_video');
+  if (generateButton) {
+    generateButton.click();
+  }
 }
 
-function main() {
-    console.log("Content script loaded");
-
-    // Send the ready message when the script loads
-    sendReadyMessage();
-
-    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-        sendLog(`Received message: ${JSON.stringify(request)}`);
-        if (request.action === 'runPrompts') {
-            sendLog("Received runPrompts message, starting execution");
-            executePrompts();
-        }
-        return true;
-    });
-
-    // Re-send the ready message periodically in case the background script reloads
-    setInterval(sendReadyMessage, 60000); // Every minute
-
-    // Set up interval for checking and generating videos
-    setInterval(checkAndGenerateVideo, 5000);
-
-    sendLog("Content script fully initialized and running");
-}
-
-export { main };
+window.addEventListener('load', injectUI);

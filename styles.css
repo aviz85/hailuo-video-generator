@@ -1,0 +1,88 @@
+.assistant-container {
+  margin: 20px auto;
+  padding: 20px;
+  border: 1px solid #444;
+  border-radius: 5px;
+  background-color: #1f1f1f;
+  font-family: Arial, sans-serif;
+  color: #fff;
+  max-width: 800px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.assistant-container textarea {
+  width: 100%;
+  height: 100px;
+  margin-bottom: 10px;
+  padding: 5px;
+  border: 1px solid #444;
+  border-radius: 3px;
+  resize: vertical;
+  background-color: #2f2f2f;
+  color: #fff;
+}
+
+.assistant-controls {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.assistant-container input[type="number"] {
+  width: 60px;
+  margin-right: 10px;
+  padding: 5px;
+  border: 1px solid #444;
+  border-radius: 3px;
+  background-color: #2f2f2f;
+  color: #fff;
+}
+
+.assistant-container table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+
+.assistant-container th, .assistant-container td {
+  border: 1px solid #444;
+  padding: 8px;
+  text-align: left;
+}
+
+.assistant-container th {
+  background-color: #2f2f2f;
+  font-weight: bold;
+}
+
+.assistant-status-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.assistant-container .status {
+  font-weight: bold;
+  color: #fff;
+}
+
+.assistant-container button {
+  padding: 8px 12px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.assistant-container button:hover {
+  background-color: #45a049;
+}
+
+.assistant-container button#assistant-stopProcess {
+  background-color: #f44336;
+}
+
+.assistant-container button#assistant-stopProcess:hover {
+  background-color: #d32f2f;
+}
