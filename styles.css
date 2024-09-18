@@ -1,13 +1,13 @@
 .assistant-container {
   margin: 20px auto;
   padding: 20px;
-  border: 1px solid #444;
-  border-radius: 5px;
-  background-color: #1f1f1f;
-  font-family: Arial, sans-serif;
-  color: #fff;
+  border: 1px solid var(--adm-color-border);
+  border-radius: var(--adm-radius-m);
+  background-color: var(--adm-color-background);
+  font-family: var(--adm-font-family);
+  color: var(--adm-color-text);
   max-width: 800px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .assistant-container textarea {
@@ -15,26 +15,29 @@
   height: 100px;
   margin-bottom: 10px;
   padding: 5px;
-  border: 1px solid #444;
-  border-radius: 3px;
+  border: 1px solid var(--adm-color-border);
+  border-radius: var(--adm-radius-s);
   resize: vertical;
-  background-color: #2f2f2f;
-  color: #fff;
+  background-color: var(--adm-color-box);
+  color: var(--adm-color-text);
+  font-size: var(--adm-font-size-main);
 }
 
 .assistant-controls {
   display: flex;
   margin-bottom: 10px;
+  align-items: center;
 }
 
 .assistant-container input[type="number"] {
   width: 60px;
   margin-right: 10px;
   padding: 5px;
-  border: 1px solid #444;
-  border-radius: 3px;
-  background-color: #2f2f2f;
-  color: #fff;
+  border: 1px solid var(--adm-color-border);
+  border-radius: var(--adm-radius-s);
+  background-color: var(--adm-color-box);
+  color: var(--adm-color-text);
+  font-size: var(--adm-font-size-main);
 }
 
 .assistant-container table {
@@ -44,13 +47,13 @@
 }
 
 .assistant-container th, .assistant-container td {
-  border: 1px solid #444;
+  border: 1px solid var(--adm-color-border);
   padding: 8px;
   text-align: left;
 }
 
 .assistant-container th {
-  background-color: #2f2f2f;
+  background-color: var(--adm-color-fill-content);
   font-weight: bold;
 }
 
@@ -62,27 +65,61 @@
 
 .assistant-container .status {
   font-weight: bold;
-  color: #fff;
+  color: var(--adm-color-text);
 }
 
 .assistant-container button {
   padding: 8px 12px;
-  background-color: #4CAF50;
-  color: white;
+  background-color: var(--adm-color-primary);
+  color: var(--adm-color-text-light-solid);
   border: none;
-  border-radius: 3px;
+  border-radius: var(--adm-radius-s);
   cursor: pointer;
   transition: background-color 0.3s;
+  font-size: var(--adm-font-size-main);
 }
 
 .assistant-container button:hover {
-  background-color: #45a049;
+  background-color: var(--adm-color-primary);
+  opacity: 0.8;
 }
 
 .assistant-container button#assistant-stopProcess {
-  background-color: #f44336;
+  background-color: var(--adm-color-danger);
 }
 
 .assistant-container button#assistant-stopProcess:hover {
-  background-color: #d32f2f;
+  background-color: var(--adm-color-danger);
+  opacity: 0.8;
+}
+
+#countdown-timer {
+  margin-top: 10px;
+  font-style: italic;
+  color: var(--adm-color-weak);
+}
+
+.success-message {
+  color: var(--adm-color-success);
+  font-weight: bold;
+  text-align: center;
+  padding: 20px;
+  background-color: var(--adm-color-fill-content);
+  border-radius: var(--adm-radius-m);
+  margin-top: 10px;
+}
+
+.assistant-container table input[type="text"],
+.assistant-container table input[type="number"] {
+  width: 100%;
+  padding: 5px;
+  border: 1px solid var(--adm-color-border);
+  border-radius: var(--adm-radius-s);
+  background-color: var(--adm-color-box);
+  color: var(--adm-color-text);
+  font-size: var(--adm-font-size-main);
+}
+
+.assistant-container table input[type="number"] {
+  width: 60px;
 }
