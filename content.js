@@ -491,7 +491,7 @@ function saveApiKey() {
     // Mask the input field for display purposes only
     apiKeyInput.value = '*'.repeat(apiKey.length);
   } else {
-    alert('Please enter a valid API key.');
+    alert('Please enter a valid OpenAI API key.');
   }
 }
 
