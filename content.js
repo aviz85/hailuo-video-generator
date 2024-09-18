@@ -58,7 +58,7 @@ function injectUI() {
           <textarea id="action-prompt" placeholder="Action description"></textarea>
         </div>
       </div>
-      <p class="model-info">Using GPT-4 Turbo for prompt crafting</p>
+      <p class="model-info">Using GPT-4o-mini for prompt crafting</p>
     </div>
     <div class="queue-section">
       <textarea id="assistant-prompt" placeholder="Enter your prompt here"></textarea>
