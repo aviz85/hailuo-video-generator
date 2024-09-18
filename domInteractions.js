@@ -31,16 +31,27 @@ async function clearTextArea(element) {
     }
 }
 
-function checkLoadingAnimation() {
-    return document.querySelector('.rotate-image') !== null;
-}
+export async function waitForAnimation(shouldAppear) {
+    console.log(`Waiting for animation to ${shouldAppear ? 'appear' : 'disappear'}`);
+    let startTime = Date.now();
+    const maxWaitTime = 300000; // 5 minutes
 
-async function waitForAnimation(shouldAppear) {
-    await sleep(60000); // Wait for 1 minute before first check
-    
     while (checkLoadingAnimation() !== shouldAppear) {
+        if (Date.now() - startTime > maxWaitTime) {
+            console.log(`Animation wait timed out after ${maxWaitTime / 1000} seconds`);
+            return false;
+        }
         await sleep(5000); // Check every 5 seconds
     }
+    
+    console.log(`Animation ${shouldAppear ? 'appeared' : 'disappeared'}`);
+    return true;
+}
+
+export function checkLoadingAnimation() {
+    const animationElement = document.querySelector('.rotate-image');
+    console.log(`Animation element present: ${animationElement !== null}`);
+    return animationElement !== null;
 }
 
 export { simulateTyping, clearTextArea, checkLoadingAnimation, waitForAnimation };

@@ -5,6 +5,7 @@ import * as storage from './storage.js';
 let currentPrompt = null;
 let remainingRepeats = 0;
 let isWaitingForAnimation = false;
+let isRunning = false; // Initialize at the top of the file
 
 function sendReadyMessage() {
     chrome.runtime.sendMessage({action: 'contentScriptReady'}, response => {
@@ -52,14 +53,24 @@ async function executePrompt(prompt) {
         
         isWaitingForAnimation = true;
         sendLog("Waiting for animation to start");
-        await domInteractions.waitForAnimation(true);
-        sendLog("Waiting for animation to end");
-        await domInteractions.waitForAnimation(false);
-        isWaitingForAnimation = false;
+        let animationStarted = await domInteractions.waitForAnimation(true);
+        if (!animationStarted) {
+            sendLog("Animation did not start within the expected time");
+            isWaitingForAnimation = false;
+            return;
+        }
         
+        sendLog("Waiting for animation to end");
+        let animationEnded = await domInteractions.waitForAnimation(false);
+        if (!animationEnded) {
+            sendLog("Animation did not end within the expected time");
+        }
+        
+        isWaitingForAnimation = false;
         sendLog(`Completed processing for prompt: "${prompt.text}"`);
     } catch (error) {
         sendLog(`Error executing prompt: ${error.message}`);
+        isWaitingForAnimation = false;
     }
 }
 
@@ -93,38 +104,23 @@ async function checkAndGenerateVideo() {
         return;
     }
 
-    const [promptQueue, isRunning] = await Promise.all([
-        storage.getFromStorage('promptQueue'),
-        storage.getFromStorage('isRunning')
-    ]);
-
+    const promptQueue = await storage.getFromStorage('promptQueue');
     sendLog(`Current state - isRunning: ${isRunning}, promptQueue length: ${promptQueue ? promptQueue.length : 0}`);
 
-    if (isRunning && promptQueue && promptQueue.length > 0) {
-        if (currentPrompt === null) {
-            currentPrompt = promptQueue[0];
-            remainingRepeats = currentPrompt.repeats;
-            sendLog(`Starting new prompt: "${currentPrompt.text}", repeats: ${remainingRepeats}`);
-            await executePrompt(currentPrompt);
-            remainingRepeats--;
-
-            if (remainingRepeats <= 0) {
-                sendLog("Finished all repeats for current prompt, moving to next");
-                const newQueue = promptQueue.slice(1);
-                await storage.setInStorage('promptQueue', newQueue);
-                currentPrompt = null;
-            } else {
-                sendLog(`Remaining repeats for current prompt: ${remainingRepeats}`);
-            }
-        } else {
-            sendLog("Current prompt still being processed");
-        }
+    if (!isRunning && promptQueue && promptQueue.length > 0) {
+        sendLog("Starting to process prompts");
+        isRunning = true;
+        await storage.setInStorage('isRunning', true);
+        await executePrompts();
     } else if (isRunning && (!promptQueue || promptQueue.length === 0)) {
         sendLog('No more prompts in queue, setting isRunning to false');
+        isRunning = false;
         await storage.setInStorage('isRunning', false);
         sendLog('Finished processing all prompts');
+    } else if (isRunning) {
+        sendLog('Already running, skipping this check');
     } else {
-        sendLog('Not running or no prompts in queue');
+        sendLog('Not running and no prompts in queue');
     }
 }
 
