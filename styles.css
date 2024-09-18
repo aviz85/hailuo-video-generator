@@ -215,6 +215,7 @@
 .craft-button {
   background-color: #4CAF50;
   color: white;
+  margin-right: 10px; /* Add margin between buttons */
 }
 
 .craft-button:hover {

@@ -11,16 +11,16 @@ function injectUI() {
   const container = document.createElement('div');
   container.className = 'assistant-container';
   container.innerHTML = `
+    <div class="api-key-section">
+      <input type="password" id="openai-api-key" placeholder="Enter your OpenAI API key">
+      <button id="save-api-key">Save API Key</button>
+    </div>
     <div class="prompt-crafter-toggle">
       <label>
         <input type="checkbox" id="show-prompt-crafter"> Show Prompt Crafter
       </label>
     </div>
     <div class="prompt-crafter" style="display: none;">
-      <div class="api-key-section">
-        <input type="password" id="openai-api-key" placeholder="Enter your OpenAI API key">
-        <button id="save-api-key">Save API Key</button>
-      </div>
       <div class="crafted-prompt-sections">
         <div class="prompt-section">
           <label>
@@ -58,9 +58,11 @@ function injectUI() {
           <textarea id="action-prompt" placeholder="Action description"></textarea>
         </div>
       </div>
+      <p class="model-info">Using GPT-4 Turbo for prompt crafting</p>
     </div>
     <div class="queue-section">
       <textarea id="assistant-prompt" placeholder="Enter your prompt here"></textarea>
+      <div id="char-count">Characters: 0 / 2000</div>
       <div class="assistant-count">
         <label for="assistant-count">Number of generations:</label>
         <input type="number" id="assistant-count" min="1" value="1">
@@ -119,6 +121,7 @@ function initializeUI() {
   document.getElementById('craft-prompt').addEventListener('click', craftPrompt);
   document.getElementById('show-prompt-crafter').addEventListener('change', togglePromptCrafter);
   document.getElementById('save-api-key').addEventListener('click', saveApiKey);
+  document.getElementById('assistant-prompt').addEventListener('input', updateCharCount);
   
   loadApiKey();
   loadPromptCrafterPreference();
@@ -149,7 +152,13 @@ function addToQueue() {
   const countInput = document.getElementById('assistant-count');
   const prompt = promptInput.value.trim();
   const count = parseInt(countInput.value);
+
   if (prompt && count > 0) {
+    if (prompt.length > 2000) {
+      alert('The prompt exceeds the 2000 character limit. Please shorten your prompt and try again.');
+      return;
+    }
+
     queue.push({ prompt, count });
     updateQueueTable();
     saveQueue();
@@ -399,47 +408,51 @@ async function craftPrompt() {
     return;
   }
 
-  const systemPrompt = `You are a video description assistant. Given a general prompt, provide detailed descriptions for the following aspects of a video. Each description should be no more than 100 words:
-  1. Style (animation/3D/hand-drawn/Disney/Pixar etc.)
-  2. Location
-  3. Characters
-  4. Shot details and camera movement (close-up/establish shot/medium shot, camera movement between subjects)
-  5. Action
+  const sections = ['style', 'location', 'characters', 'shot', 'action'];
+  const uncheckedSections = sections.filter(section => !document.getElementById(`keep-${section}`).checked);
 
-  Only provide descriptions for aspects not already specified in the input. If an aspect is already described, respond with "KEEP EXISTING" for that aspect.`;
+  const systemPrompt = `You are a video description assistant. Given a general prompt, provide detailed descriptions for the following aspects of a video: ${uncheckedSections.join(', ')}. Each description should be no more than 100 words. Respond with a JSON object where each key is the aspect name and the value is the description.`;
+
+  const schema = {
+    type: 'object',
+    properties: Object.fromEntries(uncheckedSections.map(section => [section, { type: 'string' }])),
+    required: uncheckedSections
+  };
+
+  const userPrompt = `General prompt: ${generalPrompt}\n\nJSON Schema: ${JSON.stringify(schema)}`;
 
   try {
-    const response = await fetchGPTResponse(apiKey, systemPrompt, generalPrompt);
-    const craftedPrompt = updateCraftedPrompts(response);
-    
-    // Update the assistant-prompt textarea with the crafted prompt
+    const jsonResponse = await fetchGPTResponse(apiKey, systemPrompt, userPrompt, 'json_object');
+    const parsedResponse = JSON.parse(jsonResponse);
+    updatePromptSections(parsedResponse);
+    const craftedPrompt = generateCraftedPrompt();
     promptInput.value = craftedPrompt;
+    updateCharCount(); // Add this line to update the character count
   } catch (error) {
     console.error('Error crafting prompt:', error);
     alert('An error occurred while crafting the prompt. Please try again.');
   }
 }
 
-function updateCraftedPrompts(gptResponse) {
+function updatePromptSections(parsedResponse) {
   const sections = ['style', 'location', 'characters', 'shot', 'action'];
-  const lines = gptResponse.split('\n');
-  let craftedPrompt = '';
-
-  sections.forEach((section, index) => {
+  sections.forEach(section => {
     const textarea = document.getElementById(`${section}-prompt`);
     const checkbox = document.getElementById(`keep-${section}`);
-
-    let content;
-    if (checkbox.checked) {
-      content = textarea.value;
-    } else {
-      content = lines[index] && lines[index].includes(':') ? lines[index].split(':')[1].trim() : '';
-      content = content !== 'KEEP EXISTING' ? content : textarea.value;
-      textarea.value = content;
+    if (!checkbox.checked && parsedResponse[section]) {
+      textarea.value = parsedResponse[section];
     }
+  });
+}
 
+function generateCraftedPrompt() {
+  const sections = ['style', 'location', 'characters', 'shot', 'action'];
+  let craftedPrompt = '';
+
+  sections.forEach(section => {
+    const content = document.getElementById(`${section}-prompt`).value.trim();
     if (content) {
-      craftedPrompt += `${section.charAt(0).toUpperCase() + section.slice(1)}: ${content}\n`;
+      craftedPrompt += `${section.charAt(0).toUpperCase() + section.slice(1)}: ${content}\n\n`;
     }
   });
 
@@ -475,6 +488,8 @@ function saveApiKey() {
   if (apiKey) {
     localStorage.setItem('openaiApiKey', apiKey);
     alert('API key saved successfully!');
+    // Mask the input field for display purposes only
+    apiKeyInput.value = '*'.repeat(apiKey.length);
   } else {
     alert('Please enter a valid API key.');
   }
@@ -485,23 +500,23 @@ function loadApiKey() {
   const savedApiKey = localStorage.getItem('openaiApiKey');
   
   if (savedApiKey) {
+    // Display masked version in the input field
     apiKeyInput.value = '*'.repeat(savedApiKey.length);
   }
 }
 
 function getApiKey() {
-  const apiKeyInput = document.getElementById('openai-api-key');
-  const apiKey = apiKeyInput.value.trim();
+  const savedApiKey = localStorage.getItem('openaiApiKey');
   
-  if (!apiKey) {
+  if (!savedApiKey) {
     alert('Please enter your OpenAI API key in the Prompt Crafter section.');
     return null;
   }
   
-  return apiKey;
+  return savedApiKey;
 }
 
-async function fetchGPTResponse(apiKey, systemPrompt, userPrompt) {
+async function fetchGPTResponse(apiKey, systemPrompt, userPrompt, responseFormat) {
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -513,12 +528,24 @@ async function fetchGPTResponse(apiKey, systemPrompt, userPrompt) {
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
-      ]
+      ],
+      response_format: { type: responseFormat }
     })
   });
 
   const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error?.message || 'An error occurred while fetching the GPT response');
+  }
   return data.choices[0].message.content;
+}
+
+function updateCharCount() {
+  const promptInput = document.getElementById('assistant-prompt');
+  const charCountDisplay = document.getElementById('char-count');
+  const charCount = promptInput.value.length;
+  charCountDisplay.textContent = `Characters: ${charCount} / 2000`;
+  charCountDisplay.style.color = charCount > 2000 ? 'red' : 'inherit';
 }
 
 // Wait for the window to fully load before injecting UI
