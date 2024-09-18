@@ -305,22 +305,10 @@ function typePrompt(prompt) {
     
     // Use a timeout to allow for any potential React or framework updates
     setTimeout(() => {
-      if (textArea.value !== prompt) {
-        clearAndRetry(textArea, prompt);
-      } else {
-        textArea.blur(); // Defocus the textarea
-        clickGenerateButton();
-      }
+      textArea.blur(); // Defocus the textarea
+      clickGenerateButton();
     }, 100);
   }
-}
-
-function clearAndRetry(textArea, prompt) {
-  textArea.value = '';
-  textArea.dispatchEvent(new Event('input', { bubbles: true }));
-  setTimeout(() => {
-    typePrompt(prompt);
-  }, 500);
 }
 
 function clickGenerateButton() {
