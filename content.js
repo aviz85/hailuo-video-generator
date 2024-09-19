@@ -429,11 +429,11 @@ async function craftPrompt() {
   const sections = ['style', 'location', 'characters', 'shot', 'action'];
   const uncheckedSections = sections.filter(section => !document.getElementById(`keep-${section}`).checked);
 
-  const systemPrompt = `You are a video description assistant specializing in concise yet detailed visual descriptions. Given a general prompt, provide specific, vivid details for the following aspects of a video: ${uncheckedSections.join(', ')}. Focus on creating rich visual imagery using short, comma-separated phrases. For each aspect:
+  const systemPrompt = `You are a video description assistant specializing in concise yet detailed visual descriptions. Given a general prompt, provide specific, vivid details for the following aspects of one short shot (5 seconds) of a film: ${uncheckedSections.join(', ')}. Focus on creating rich visual imagery using short, comma-separated phrases. For each aspect:
   - Style: Define visual style (e.g., 3D animation, hand-drawn, live-action), color palette (e.g., vibrant, muted, monochrome), era-specific aesthetics (e.g., 80s retro, futuristic), cinematic influences (e.g., film noir, Wes Anderson-esque), and overall mood (e.g., whimsical, gritty, ethereal) in 5-7 detailed, comma-separated phrases.
   - Location: Describe setting details, architecture, landscape, and atmosphere in 7-10 phrases.
   - Characters: Provide visual profiles including appearance, attire, and expressions in 7-10 phrases.
-  - Shot: Describe camera angles, movements, and framing in 5-7 phrases.
+  - Shot: Describe specifiec camera angle, movement, and framing in 5-7 phrases.
   - Action: Outline key movements and events in the scene in 5-7 phrases.
   Keep each aspect's description under 100 words total. Respond with a JSON object where each key is the aspect name and the value is the comma-separated list of phrases.`;
 
