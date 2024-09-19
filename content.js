@@ -295,7 +295,7 @@ function processQueue() {
       const item = queue[0];
       typePrompt(item.prompt);
       
-      // Update the queue immediately after starting the job
+      // Update the queue after starting the job
       item.count--;
       if (item.count <= 0) {
         queue.shift();
@@ -310,6 +310,9 @@ function processQueue() {
       clearTimeout(injectionCheckTimeout);
       injectionCheckTimeout = setTimeout(checkForInjection, 60000);
       startCountdown();
+      
+      // Set isAvailable to false to prevent double processing
+      isAvailable = false;
     } else {
       // If not available, start the countdown to next status check
       startCountdown();
@@ -427,7 +430,7 @@ async function craftPrompt() {
   const uncheckedSections = sections.filter(section => !document.getElementById(`keep-${section}`).checked);
 
   const systemPrompt = `You are a video description assistant specializing in concise yet detailed visual descriptions. Given a general prompt, provide specific, vivid details for the following aspects of a video: ${uncheckedSections.join(', ')}. Focus on creating rich visual imagery using short, comma-separated phrases. For each aspect:
-  - Style: Define clear visual elements and mood in 10-15 phrases, including specific animation style (e.g., 3D CGI, hand-drawn 2D, stop-motion), cinematic qualities, color palette, lighting, texture, atmosphere, era-specific details, artistic influences, and overall visual tone.
+  - Style: Define clear visual elements and mood in 5-7 phrases.
   - Location: Describe setting details, architecture, landscape, and atmosphere in 7-10 phrases.
   - Characters: Provide visual profiles including appearance, attire, and expressions in 7-10 phrases.
   - Shot: Describe camera angles, movements, and framing in 5-7 phrases.
