@@ -411,7 +411,7 @@ async function craftPrompt() {
   const sections = ['style', 'location', 'characters', 'shot', 'action'];
   const uncheckedSections = sections.filter(section => !document.getElementById(`keep-${section}`).checked);
 
-  const systemPrompt = `You are a video description assistant. Given a general prompt, provide detailed descriptions for the following aspects of a video: ${uncheckedSections.join(', ')}. Each description should be no more than 100 words. Respond with a JSON object where each key is the aspect name and the value is the description.`;
+  const systemPrompt = `You are a video description assistant specializing in detailed visual descriptions. Given a general prompt, provide highly specific and visually rich descriptions for the following aspects of a video: ${uncheckedSections.join(', ')}. Focus on creating vivid, precise visual imagery, especially for the location and characters. For the location, describe the setting in intricate detail, including architecture, landscape, lighting, and atmosphere. For characters, provide a comprehensive visual profile including appearance, attire, expressions, and body language. The style should be clearly defined with specific visual elements. Each description should be no more than 150 words to allow for greater detail. Respond with a JSON object where each key is the aspect name and the value is the detailed visual description.`;
 
   const schema = {
     type: 'object',
