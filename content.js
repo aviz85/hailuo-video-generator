@@ -413,7 +413,6 @@ async function craftPrompt() {
   
   craftButton.textContent = 'Crafting...';
   craftButton.disabled = true;
-  promptInput.value = 'Crafting prompt...';
   
   const generalPrompt = promptInput.value;
   const apiKey = getApiKey();
@@ -421,14 +420,19 @@ async function craftPrompt() {
   if (!apiKey) {
     craftButton.textContent = originalButtonText;
     craftButton.disabled = false;
-    promptInput.value = generalPrompt;
     return;
   }
 
   const sections = ['style', 'location', 'characters', 'shot', 'action'];
   const uncheckedSections = sections.filter(section => !document.getElementById(`keep-${section}`).checked);
 
-  const systemPrompt = `You are a video description assistant specializing in detailed visual descriptions. Given a general prompt, provide highly specific and visually rich descriptions for the following aspects of a video: ${uncheckedSections.join(', ')}. Focus on creating vivid, precise visual imagery, especially for the location and characters. For the location, describe the setting in intricate detail, including architecture, landscape, lighting, and atmosphere. For characters, provide a comprehensive visual profile including appearance, attire, expressions, and body language. The style should be clearly defined with specific visual elements. Each description should be no more than 150 words to allow for greater detail. Respond with a JSON object where each key is the aspect name and the value is the detailed visual description.`;
+  const systemPrompt = `You are a video description assistant specializing in concise yet detailed visual descriptions. Given a general prompt, provide specific, vivid details for the following aspects of a video: ${uncheckedSections.join(', ')}. Focus on creating rich visual imagery using short, comma-separated phrases. For each aspect:
+  - Style: Define clear visual elements and mood in 10-15 phrases, including specific animation style (e.g., 3D CGI, hand-drawn 2D, stop-motion), cinematic qualities, color palette, lighting, texture, atmosphere, era-specific details, artistic influences, and overall visual tone.
+  - Location: Describe setting details, architecture, landscape, and atmosphere in 7-10 phrases.
+  - Characters: Provide visual profiles including appearance, attire, and expressions in 7-10 phrases.
+  - Shot: Describe camera angles, movements, and framing in 5-7 phrases.
+  - Action: Outline key movements and events in the scene in 5-7 phrases.
+  Keep each aspect's description under 100 words total. Respond with a JSON object where each key is the aspect name and the value is the comma-separated list of phrases.`;
 
   const schema = {
     type: 'object',
@@ -448,7 +452,6 @@ async function craftPrompt() {
   } catch (error) {
     console.error('Error crafting prompt:', error);
     alert('An error occurred while crafting the prompt. Please try again.');
-    promptInput.value = generalPrompt;
   } finally {
     craftButton.textContent = originalButtonText;
     craftButton.disabled = false;
