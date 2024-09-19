@@ -145,6 +145,13 @@ function initializeUI() {
   // Start checking status immediately
   checkStatus();
   statusCheckInterval = setInterval(checkStatus, 2000);
+
+  // Add event listeners for each prompt section textarea
+  const sections = ['style', 'location', 'characters', 'shot', 'action'];
+  sections.forEach(section => {
+    const textarea = document.getElementById(`${section}-prompt`);
+    textarea.addEventListener('input', updateCraftedPrompt);
+  });
 }
 
 function addToQueue() {
@@ -457,6 +464,12 @@ function generateCraftedPrompt() {
   });
 
   return craftedPrompt.trim();
+}
+
+function updateCraftedPrompt() {
+  const promptInput = document.getElementById('assistant-prompt');
+  promptInput.value = generateCraftedPrompt();
+  updateCharCount();
 }
 
 function togglePromptCrafter() {
