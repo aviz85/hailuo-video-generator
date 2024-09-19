@@ -407,11 +407,21 @@ function clickGenerateButton() {
 }
 
 async function craftPrompt() {
+  const craftButton = document.getElementById('craft-prompt');
   const promptInput = document.getElementById('assistant-prompt');
+  const originalButtonText = craftButton.textContent;
+  
+  craftButton.textContent = 'Crafting...';
+  craftButton.disabled = true;
+  promptInput.value = 'Crafting prompt...';
+  
   const generalPrompt = promptInput.value;
   const apiKey = getApiKey();
 
   if (!apiKey) {
+    craftButton.textContent = originalButtonText;
+    craftButton.disabled = false;
+    promptInput.value = generalPrompt;
     return;
   }
 
@@ -434,10 +444,14 @@ async function craftPrompt() {
     updatePromptSections(parsedResponse);
     const craftedPrompt = generateCraftedPrompt();
     promptInput.value = craftedPrompt;
-    updateCharCount(); // Add this line to update the character count
+    updateCharCount();
   } catch (error) {
     console.error('Error crafting prompt:', error);
     alert('An error occurred while crafting the prompt. Please try again.');
+    promptInput.value = generalPrompt;
+  } finally {
+    craftButton.textContent = originalButtonText;
+    craftButton.disabled = false;
   }
 }
 
