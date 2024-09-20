@@ -10,6 +10,15 @@ let nextInjectionCheckTime;
 function injectUI() {
   const container = document.createElement('div');
   container.className = 'assistant-container';
+  
+  // Create a link element for the external CSS
+  const linkElement = document.createElement('link');
+  linkElement.rel = 'stylesheet';
+  linkElement.href = chrome.runtime.getURL('styles.css');
+  
+  // Append the link element to the document head
+  document.head.appendChild(linkElement);
+
   container.innerHTML = `
     <div class="api-key-section">
       <input type="password" id="openai-api-key" placeholder="Enter your OpenAI API key">
@@ -122,6 +131,7 @@ function initializeUI() {
   document.getElementById('show-prompt-crafter').addEventListener('change', togglePromptCrafter);
   document.getElementById('save-api-key').addEventListener('click', saveApiKey);
   document.getElementById('assistant-prompt').addEventListener('input', updateCharCount);
+  document.getElementById('assistant-prompt').addEventListener('input', updateButtonStates);
   
   loadApiKey();
   loadPromptCrafterPreference();
@@ -152,8 +162,12 @@ function initializeUI() {
     const textarea = document.getElementById(`${section}-prompt`);
     textarea.addEventListener('input', updateCraftedPrompt);
   });
+
+  updateStartButtonState(); // Initial update of button state
+  updateButtonStates(); // Initial update of button states
 }
 
+// Modify the addToQueue function
 function addToQueue() {
   const promptInput = document.getElementById('assistant-prompt');
   const countInput = document.getElementById('assistant-count');
@@ -171,6 +185,8 @@ function addToQueue() {
     saveQueue();
     promptInput.value = '';
     countInput.value = 1;
+    updateStartButtonState(); // Update start button state after adding to queue
+    updateButtonStates(); // Update craft and add to queue button states
   }
 }
 
@@ -183,6 +199,7 @@ function updateQueueTable() {
 
   if (queue.length === 0) {
     queueContainer.innerHTML = '<div class="success-message">All tasks completed successfully!</div>';
+    updateStartButtonState(); // Update button state when queue becomes empty
     return;
   }
 
@@ -239,6 +256,7 @@ function updateQueueTable() {
       queue.splice(index, 1);
       updateQueueTable();
       saveQueue();
+      updateStartButtonState(); // Update button state after removing from queue
     });
     actionCell.appendChild(deleteButton);
   });
@@ -247,6 +265,8 @@ function updateQueueTable() {
   const countdownTimer = document.createElement('div');
   countdownTimer.id = 'countdown-timer';
   queueContainer.appendChild(countdownTimer);
+
+  updateStartButtonState(); // Update button state after rebuilding the queue table
 }
 
 function saveQueue() {
@@ -264,29 +284,20 @@ function updateStatus(message) {
 }
 
 function startProcess() {
-  if (!isProcessing) {
+  if (queue.length > 0) {
     isProcessing = true;
     updateStatus('Processing started');
     processQueue();
-    
-    const startButton = document.getElementById('assistant-startProcess');
-    startButton.textContent = 'Processing...';
-    startButton.disabled = true;
-    saveQueue();
+    updateStartButtonState(); // Update button state when starting process
   }
 }
 
 function stopProcess() {
-  if (isProcessing) {
-    isProcessing = false;
-    updateStatus('Processing stopped');
-    clearTimeout(injectionCheckTimeout);
-    
-    const startButton = document.getElementById('assistant-startProcess');
-    startButton.textContent = 'Start Process';
-    startButton.disabled = false;
-    saveQueue();
-  }
+  isProcessing = false;
+  clearTimeout(statusCheckInterval);
+  clearTimeout(injectionCheckTimeout);
+  updateStatus('Processing stopped');
+  updateStartButtonState(); // Update button state when stopping process
 }
 
 function processQueue() {
@@ -304,6 +315,7 @@ function processQueue() {
       }
       saveQueue();
       updateQueueTable();
+      updateStartButtonState(); // Update button state after processing
 
       // Set timeout for the first injection check after 60 seconds
       nextInjectionCheckTime = Date.now() + 60000; // 60 seconds
@@ -320,6 +332,7 @@ function processQueue() {
   } else if (queue.length === 0) {
     stopProcess();
     updateQueueTable(); // This will show the success message
+    updateStartButtonState(); // Update button state when queue is empty
   }
 }
 
@@ -457,12 +470,14 @@ Keep each aspect's description under 100 words total. Respond with a JSON object
     const craftedPrompt = generateCraftedPrompt();
     promptInput.value = craftedPrompt;
     updateCharCount();
+    updateButtonStates(); // Update button states after setting new prompt
   } catch (error) {
     console.error('Error crafting prompt:', error);
     alert('An error occurred while crafting the prompt. Please try again.');
   } finally {
     craftButton.textContent = originalButtonText;
     craftButton.disabled = false;
+    updateButtonStates(); // Ensure buttons are updated even if there's an error
   }
 }
 
@@ -586,9 +601,33 @@ function updateCharCount() {
   charCountDisplay.style.color = charCount > 2000 ? 'red' : 'inherit';
 }
 
+// Add this function to update button states based on prompt content
+function updateButtonStates() {
+  const promptInput = document.getElementById('assistant-prompt');
+  const craftButton = document.getElementById('craft-prompt');
+  const addToQueueButton = document.getElementById('assistant-addToQueue');
+  const isPromptEmpty = promptInput.value.trim() === '';
+
+  craftButton.disabled = isPromptEmpty;
+  addToQueueButton.disabled = isPromptEmpty;
+}
+
+// Add this function to update the start button state
+function updateStartButtonState() {
+  const startButton = document.getElementById('assistant-startProcess');
+  if (startButton) {
+    const isDisabled = queue.length === 0 || isProcessing;
+    startButton.disabled = isDisabled;
+    startButton.classList.toggle('disabled', isDisabled);
+  }
+}
+
 // Wait for the window to fully load before injecting UI
 window.onload = () => {
-  setTimeout(injectUI, 1000); // Additional 1-second delay after window load
+  setTimeout(() => {
+    injectUI();
+    updateStartButtonState(); // Update button state on page load
+  }, 1000); // 1-second delay after window load
 };
 
 // Initialize status check interval

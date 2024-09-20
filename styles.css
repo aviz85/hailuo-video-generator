@@ -305,3 +305,35 @@
   color: #ffffff;
   resize: vertical;
 }
+
+#assistant-startProcess:disabled,
+#craft-prompt:disabled,
+#assistant-addToQueue:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #cccccc;
+  color: #666666;
+}
+
+#assistant-startProcess.disabled,
+#craft-prompt.disabled,
+#assistant-addToQueue.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #cccccc;
+  color: #666666;
+}
+
+#assistant-startProcess:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #cccccc;
+  color: #666666;
+}
+
+#assistant-startProcess.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #cccccc;
+  color: #666666;
+}
