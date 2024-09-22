@@ -287,8 +287,12 @@ function startProcess() {
   if (queue.length > 0) {
     isProcessing = true;
     updateStatus('Processing started');
+    const startButton = document.getElementById('assistant-startProcess');
+    startButton.textContent = 'Processing...';
+    startButton.disabled = true;
     processQueue();
-    updateStartButtonState(); // Update button state when starting process
+    updateStartButtonState(); // This will now be called after setting the button text
+    saveQueue(); // Save the current state
   }
 }
 
@@ -623,6 +627,13 @@ function updateStartButtonState() {
     const isDisabled = queue.length === 0 || isProcessing;
     startButton.disabled = isDisabled;
     startButton.classList.toggle('disabled', isDisabled);
+    
+    // Update the button text based on the processing state
+    if (isProcessing) {
+      startButton.textContent = 'Processing...';
+    } else {
+      startButton.textContent = 'Start Process';
+    }
   }
 }
 
