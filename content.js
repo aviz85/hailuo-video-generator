@@ -298,6 +298,8 @@ function stopProcess() {
   clearTimeout(injectionCheckTimeout);
   updateStatus('Processing stopped');
   updateStartButtonState(); // Update button state when stopping process
+  // Add this line to reset the start button text
+  document.getElementById('assistant-startProcess').textContent = 'Start Process';
 }
 
 function processQueue() {
@@ -333,6 +335,8 @@ function processQueue() {
     stopProcess();
     updateQueueTable(); // This will show the success message
     updateStartButtonState(); // Update button state when queue is empty
+    // Add this line to reset the start button text when queue is finished
+    document.getElementById('assistant-startProcess').textContent = 'Start Process';
   }
 }
 
