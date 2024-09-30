@@ -92,10 +92,9 @@ function injectUI() {
 
   // Function to insert the container
   function insertContainer() {
-    const insertionPoint = document.querySelector('div.mt-3 img[src="assets/img/video-top-logo.png"]');
+    const insertionPoint = document.querySelector('img[src="/assets/img/video-header-logo.png"][alt="hailuo ai video header"]');
     if (insertionPoint) {
-      const parentElement = insertionPoint.closest('.mt-3');
-      parentElement.insertAdjacentElement('afterend', container);
+      insertionPoint.insertAdjacentElement('afterend', container);
       return true;
     }
     return false;
@@ -358,7 +357,7 @@ function checkForInjection() {
 }
 
 function checkStatus() {
-  const loadingElement = document.querySelector('.rotate-image');
+  const loadingElement = document.querySelector('img.animate-spin[src="/assets/img/create-loading.png"]');
   isAvailable = !loadingElement;
   updateStatus(isAvailable ? 'Creation available' : 'Creation not available');
   
@@ -424,9 +423,11 @@ function typePrompt(prompt) {
 }
 
 function clickGenerateButton() {
-  const generateButton = document.querySelector('button.build_video');
+  const generateButton = document.querySelector('div.create-btn');
   if (generateButton) {
     generateButton.click();
+  } else {
+    console.error('Generate button not found');
   }
 }
 
