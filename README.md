@@ -1,7 +1,7 @@
 # HaiLuoAI Video Generator Assistant
 
 ## Description
-The HaiLuoAI Video Generator Assistant is a Chrome extension that enhances the video generation process on the HaiLuoAI platform (https://hailuoai.com/video and https://hailuoai.video). It allows users to queue multiple prompts, automate the video generation process, and monitor the system's availability.
+The HaiLuoAI Video Generator Assistant is a Chrome extension that enhances the video generation process on the HaiLuoAI platform (https://hailuoai.video). It allows users to queue multiple prompts, automate the video generation process, and monitor the system's availability.
 
 ## Features
 - Queue multiple prompts for video generation
@@ -17,7 +17,7 @@ The HaiLuoAI Video Generator Assistant is a Chrome extension that enhances the v
 4. Click "Load unpacked" and select the directory containing the extension files
 
 ## Usage
-1. Navigate to https://hailuoai.com/video or https://hailuoai.video
+1. Navigate to https://hailuoai.video
 2. The extension UI will be injected into the page
 3. Add prompts to the queue using the provided input fields
 4. Click "Start Process" to begin automated video generation

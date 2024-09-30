@@ -7,13 +7,11 @@
     "storage"
   ],
   "host_permissions": [
-    "https://hailuoai.com/*",
     "https://hailuoai.video/*"
   ],
   "content_scripts": [
     {
       "matches": [
-        "https://hailuoai.com/*",
         "https://hailuoai.video/*"
       ],
       "js": ["content.js"],
